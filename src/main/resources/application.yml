@@ -1,0 +1,78 @@
+spring:
+  profiles:
+    active: problem
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/stampede
+    username: postgres
+    password: postgres
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 3000
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics, prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: problem
+
+cache:
+  ttl: 10
+  jitter: 0
+
+---
+spring:
+  config:
+    activate:
+      on-profile: solution-v1
+
+cache:
+  ttl: 10
+  jitter: 0
+
+---
+spring:
+  config:
+    activate:
+      on-profile: solution-v2
+
+cache:
+  ttl: 10
+  jitter: 5
+
+---
+spring:
+  config:
+    activate:
+      on-profile: solution-v3
+
+cache:
+  ttl: 60
+  jitter: 0
+  warming:
+    cron: "*/5 * * * * *"
+    product-ids: 1, 2, 3

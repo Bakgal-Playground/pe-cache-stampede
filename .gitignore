@@ -1,0 +1,16 @@
+.gradle/
+build/
+out/
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+.idea/
+*.iml
+*.ipr
+*.iws
+
+results/*.png
+results/metrics.csv
+
+.env
