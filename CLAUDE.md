@@ -117,3 +117,48 @@ GET /actuator/metrics/db.query.count
 - `Thread.sleep()` 으로 캐시 만료 시뮬레이션 금지 → Redis TTL을 짧게 설정해서 자연 만료
 - 여러 상품 ID를 섞어서 테스트 금지 → 단일 상품 ID에 트래픽 집중해야 Stampede 재현 가능
 - solution 코드에서 problem 코드 재사용 금지 → 각 버전은 완전히 독립적으로 작성
+
+---
+
+## 브랜치 전략
+
+각 Step은 독립 브랜치에서 작업합니다.
+
+- 브랜치 명: `step/NN-이름` (예: `step/02-problem`)
+- Step 완료 후 main에 merge
+- main은 완료된 Step만 포함
+
+새 Step 시작 시:
+
+```bash
+git checkout main && git checkout -b step/NN-이름
+```
+
+---
+
+## 의존성 관리 규칙
+
+필요한 의존성은 **실제 사용 시점에만** `build.gradle.kts`에 추가합니다.
+Step N 구현을 시작할 때 그 Step에서만 쓰이는 의존성을 추가합니다.
+
+---
+
+## 인프라 실행
+
+로컬 개발 시 DB만 띄우기:
+
+```bash
+docker compose -f docker/docker-compose.yml up -d
+```
+
+전체 스택(앱 포함):
+
+```bash
+docker compose up -d
+```
+
+---
+
+## 진행 상태
+
+→ [docs/STATUS.md](docs/STATUS.md)
