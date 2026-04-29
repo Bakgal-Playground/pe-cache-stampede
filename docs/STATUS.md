@@ -13,6 +13,12 @@
 
 ## 다음 단계
 
-→ Step 2: Problem 구현
-→ 브랜치: `git checkout -b step/02-problem`
-→ 스펙: `docs/EXPERIMENT.md` Step 2 참고
+**Step 2: Problem 구현**
+
+```bash
+git checkout -b step/02-problem
+```
+
+- `problem/ProductController.kt` — `GET /problem/products/{id}`
+- `problem/ProductService.kt` — 보호 장치 없는 Cache-Aside (락/뮤텍스 금지)
+- 스펙: `docs/EXPERIMENT.md` Step 2
