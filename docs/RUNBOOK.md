@@ -8,11 +8,11 @@
 
 | 단계 | 상태 | 비고 |
 |------|------|------|
-| Step 1. 공통 환경 구성 | 완료 | Docker Compose, Redis, PostgreSQL, DataInitializer |
-| Step 2. Problem 구현 | 완료 | `problem/` 패키지, 실험 완료 |
-| Step 3. Solution V1 (Mutex Lock) | 미구현 | `solution/v1/` 패키지 없음 |
-| Step 4. Solution V2 (TTL Jitter) | 미구현 | `solution/v2/` 패키지 없음 |
-| Step 5. Solution V3 (Cache Warming) | 미구현 | `solution/v3/` 패키지 없음 |
+| Step 1. 공통 환경 구성 | ✅ 완료 | Docker Compose, Redis, PostgreSQL, DataInitializer |
+| Step 2. Problem 구현 | ✅ 완료 | `problem/` 패키지, 공통 추상화, 500 VU 실험 완료 |
+| Step 3. Solution V1 (Mutex Lock) | ⬜ 대기 | `solution/v1/` 패키지 없음 |
+| Step 4. Solution V2 (TTL Jitter) | ⬜ 대기 | `solution/v2/` 패키지 없음 |
+| Step 5. Solution V3 (Cache Warming) | ⬜ 대기 | `solution/v3/` 패키지 없음 |
 
 실험 상세 스펙: [docs/EXPERIMENT.md](EXPERIMENT.md)
 실험 결과: [docs/experiments/problem.md](experiments/problem.md)
@@ -236,9 +236,13 @@ class ProductService(
 
 ## 커밋 전략
 
-브랜치: `step/02-problem` (현재)
-완료 후 main으로 merge → `step/03-solution-v1` 브랜치 생성
+현재 브랜치: `step/02-problem` (커밋 완료, main merge 대기)
 
 ```bash
-git checkout main && git checkout -b step/03-solution-v1
+# Step 2 마무리 — main merge
+git checkout main
+git merge step/02-problem
+
+# Step 3 시작
+git checkout -b step/03-solution-v1
 ```

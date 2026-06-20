@@ -56,14 +56,68 @@ VU 5배 증가 시 과잉 DB 쿼리 약 12배 증가. 상세 해석: `docs/exper
 
 **Step 3: Solution V1 — Mutex Lock**
 
+### 1. 브랜치 준비
+
 ```bash
-git checkout main && git checkout -b step/03-solution-v1
+# step/02-problem → main merge 후 새 브랜치 생성
+git checkout main
+git merge step/02-problem
+git checkout -b step/03-solution-v1
 ```
 
-- `solution/v1/ProductController.kt` — `GET /solution/v1/products/{id}`
-- `solution/v1/ProductService.kt` — `ConcurrentHashMap<Long, Mutex>` + Double-checked locking
-- 스펙: `docs/EXPERIMENT.md` Step 3
-- 구현 후 동일 k6 시나리오로 비교 실험: `PROFILE=solution-v1 docker compose run --rm k6`
-- 결과 기록: `docs/experiments/solution-v1.md`
+### 2. 구현
+
+파일 2개 생성:
+- `src/main/kotlin/com/pe/cachestampede/solution/v1/ProductController.kt` — `GET /solution/v1/products/{id}`
+- `src/main/kotlin/com/pe/cachestampede/solution/v1/ProductService.kt` — Mutex Lock 적용
+
+공통 컴포넌트 그대로 주입해서 사용:
+
+```kotlin
+@Service
+class ProductService(
+    private val redisTemplate: RedisTemplate<String, Any>,
+    private val productRepository: ProductRepository,
+    private val dbQueryCounter: DbQueryCounter,
+    private val slowQuerySimulator: SlowQuerySimulator,
+    @Value("\${cache.ttl}") private val ttl: Long
+) {
+    private val mutexMap = ConcurrentHashMap<Long, Mutex>()
+
+    suspend fun getProduct(id: Long): Product? {
+        val key = CacheKeyResolver.productKey(id)
+        redisTemplate.opsForValue().get(key)
+            ?.let { return it as? Product ?: run { redisTemplate.delete(key); null } }
+
+        val mutex = mutexMap.getOrPut(id) { Mutex() }
+        mutex.withLock {
+            // Double-checked locking
+            redisTemplate.opsForValue().get(key)
+                ?.let { return it as? Product ?: run { redisTemplate.delete(key); null } }
+
+            slowQuerySimulator.simulate()
+            val product = productRepository.findById(id).orElse(null) ?: return null
+            dbQueryCounter.increment()
+            redisTemplate.opsForValue().set(key, product, ttl, TimeUnit.SECONDS)
+            return product
+        }
+    }
+}
+```
+
+> Controller는 `suspend fun`을 사용하므로 `@GetMapping` + coroutine 지원 필요.
+> `kotlinx-coroutines-core` 의존성은 이미 추가되어 있음 (`build.gradle.kts`).
+
+### 3. 실험
+
+```bash
+APP_PROFILE=solution-v1 docker compose up -d --build
+PROFILE=solution-v1 VUS=500 docker compose run --rm k6
+docker compose exec app sh -c 'curl -s http://localhost:8080/actuator/metrics/db.query.count'
+```
+
+### 4. 결과 기록
+
+`docs/experiments/solution-v1.md` 에 결과 기록 (템플릿 준비됨)
 
 > 참고: `docs/RUNBOOK.md` — 환경 실행, 프로파일 전환, 알려진 이슈 전부 정리됨
