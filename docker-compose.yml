@@ -49,7 +49,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
-      SPRING_PROFILES_ACTIVE: problem
+      SPRING_PROFILES_ACTIVE: ${APP_PROFILE:-problem}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: create
     depends_on:
       postgres:
         condition: service_healthy
@@ -64,8 +65,21 @@ services:
           cpus: "1"
           memory: 1g
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 60s
+
+  k6:
+    image: grafana/k6:latest
+    profiles: ["test"]
+    volumes:
+      - ./load-test:/scripts
+    environment:
+      BASE_URL: http://app:8080
+      PROFILE: ${PROFILE:-problem}
+    command: run /scripts/stampede.js
+    depends_on:
+      app:
+        condition: service_healthy
