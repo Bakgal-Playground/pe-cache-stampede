@@ -14,3 +14,5 @@ results/*.png
 results/metrics.csv
 
 .env
+
+.omc/

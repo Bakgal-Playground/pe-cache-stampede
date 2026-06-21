@@ -7,9 +7,9 @@ spring:
     username: postgres
     password: postgres
     hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
-      connection-timeout: 3000
+      maximum-pool-size: 5      # 풀 고갈 유도 (모든 프로파일 동일 조건)
+      minimum-idle: 2
+      connection-timeout: 1000  # 1초 초과 시 예외 발생
 
   jpa:
     hibernate:
@@ -43,6 +43,7 @@ spring:
 cache:
   ttl: 10
   jitter: 0
+  db-delay-ms: 500  # DB 쿼리 지연 시뮬레이션 (모든 solution과 동일 조건)
 
 ---
 spring:
@@ -53,6 +54,7 @@ spring:
 cache:
   ttl: 10
   jitter: 0
+  db-delay-ms: 500
 
 ---
 spring:
@@ -63,6 +65,7 @@ spring:
 cache:
   ttl: 10
   jitter: 5
+  db-delay-ms: 500
 
 ---
 spring:
@@ -73,6 +76,7 @@ spring:
 cache:
   ttl: 60
   jitter: 0
+  db-delay-ms: 500
   warming:
     cron: "*/5 * * * * *"
     product-ids: 1, 2, 3
